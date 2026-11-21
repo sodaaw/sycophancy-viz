@@ -7,8 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   DATA, ID_RE, buildCases, buildExport, caseHeader, listIds, readEvents, readJson, readParticipant, writeExport,
-  EXPECTED_EVENTS,
+  EXPECTED_EVENTS, loadCoding,
 } from './scripts/lib/analysis.js';
+import { FIELDS as CODING_FIELDS } from './scripts/lib/coding-rules.js';
 import { purgeParticipant } from './scripts/lib/purge.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -163,7 +164,7 @@ function detail(id) {
     },
     versions: { v1: p.v1, v2: p.v2 },
     memos: { current: p.memos, deleted: p.deleted },
-    cases: { header: caseHeader, rows: buildCases(id, p, events) },
+    cases: { header: caseHeader, rows: buildCases(id, p, events, loadCoding()) },
     events: events.map((e) => ({ ts: e.timestamp_ms, screen: e.screen, event: e.event, target: e.target, detail: e.detail })),
     s5Start: s5 ? s5.timestamp_ms : null,
   };
@@ -171,14 +172,15 @@ function detail(id) {
 
 // ---------- 코딩 ----------
 const CODING_DIR = path.join(DATA, 'coding');
-const CODING_FIELDS = {
-  인지: ['예', '아니오'],
-  해석: ['정확', '부분', '오해', '없음'],
-  작동: ['예', '아니오'],
-  반영: ['반영', '부분', '미반영', '동조 댓글만 반영'],
+const codingFile = (n) => path.join(CODING_DIR, n === 'consensus' ? 'consensus.json' : `coder${n}.json`);
+const readCoding = (n) => readJson(codingFile(n)) || { coder: n === 'consensus' ? 'consensus' : Number(n), cases: {} };
+const interviewFile = path.join(CODING_DIR, 'interview.json');
+const readInterview = () => readJson(interviewFile) || { participants: {} };
+const writeJson = async (file, obj) => {
+  await fsp.mkdir(CODING_DIR, { recursive: true });
+  await fsp.writeFile(`${file}.tmp`, JSON.stringify(obj, null, 2));
+  await fsp.rename(`${file}.tmp`, file);
 };
-const codingFile = (n) => path.join(CODING_DIR, `coder${n}.json`);
-const readCoding = (n) => readJson(codingFile(n)) || { coder: Number(n), cases: {} };
 
 // ---------- 라우터 ----------
 export async function handleAdmin(req, res, url) {
@@ -192,10 +194,10 @@ export async function handleAdmin(req, res, url) {
   if (!pathname.startsWith('/admin/api')) {
     if (isBusy()) return html(res, 423, BUSY_HTML);
     const file = pathname === '/admin' ? 'index.html' : pathname.slice('/admin/'.length);
-    if (!['index.html', 'admin.js', 'admin.css'].includes(file)) return html(res, 404, 'not found');
+    if (!['index.html', 'admin.js', 'admin.css', 'coding-rules.js'].includes(file)) return html(res, 404, 'not found');
     const type = file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8';
     res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-store' });
-    return res.end(await fsp.readFile(path.join(ADMIN_DIR, file)));
+    return res.end(await fsp.readFile(file === 'coding-rules.js' ? path.join(ROOT, 'scripts', 'lib', file) : path.join(ADMIN_DIR, file)));
   }
 
   const route = pathname.slice('/admin/api/'.length);
@@ -283,27 +285,44 @@ export async function handleAdmin(req, res, url) {
 
     if (route === 'coding' && method === 'GET') {
       const coder = url.searchParams.get('coder');
-      if (coder === 'compare') return json(res, 200, { 1: readCoding(1), 2: readCoding(2), fields: CODING_FIELDS });
+      const interview = readInterview().participants;
+      if (coder === 'compare') {
+        return json(res, 200, { 1: readCoding(1), 2: readCoding(2), consensus: readCoding('consensus'), fields: CODING_FIELDS, interview });
+      }
       if (!['1', '2'].includes(coder)) return json(res, 400, { error: 'invalid coder' });
-      return json(res, 200, { ...readCoding(coder), fields: CODING_FIELDS });
+      return json(res, 200, { ...readCoding(coder), fields: CODING_FIELDS, interview });
     }
 
     if (route === 'coding' && method === 'POST') {
       const b = JSON.parse((await readBody(req)) || '{}');
       const key = String(b.key || '');
-      if (!['1', '2', 1, 2].includes(b.coder) || !/^S2-P\d{2,3}\|[AB]1-(2|R)$/.test(key)) return json(res, 400, { error: 'invalid' });
+      const coder = String(b.coder);
+      if (!['1', '2', 'consensus'].includes(coder) || !/^S2-P\d{2,3}\|[AB]1-(2|R)$/.test(key)) return json(res, 400, { error: 'invalid' });
       if (!CODING_FIELDS[b.field] || (b.value !== '' && !CODING_FIELDS[b.field].includes(b.value))) return json(res, 400, { error: 'invalid value' });
       const id = key.split('|')[0];
       if (!fs.existsSync(path.join(DATA, id))) return json(res, 404, { error: '없는 참여자예요' });
-      const file = codingFile(b.coder);
-      const j = readCoding(b.coder);
+      const j = readCoding(coder);
       const c = (j.cases[key] = j.cases[key] || {});
       if (b.value === '') delete c[b.field];
       else c[b.field] = b.value;
       j.updatedAt = Date.now();
-      await fsp.mkdir(CODING_DIR, { recursive: true });
-      await fsp.writeFile(`${file}.tmp`, JSON.stringify(j, null, 2));
-      await fsp.rename(`${file}.tmp`, file);
+      await writeJson(codingFile(coder), j);
+      return json(res, 200, { ok: true });
+    }
+
+    // 인터뷰 문항 8 점수 (참여자별): panel = 접힌 안내(회색 표시), memo = 메모 기능, 1~5
+    if (route === 'interview' && method === 'POST') {
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const v = b.value === '' ? '' : Number(b.value);
+      if (!ID_RE.test(String(b.id)) || !['panel', 'memo'].includes(b.field) || (v !== '' && !(Number.isInteger(v) && v >= 1 && v <= 5))) {
+        return json(res, 400, { error: 'invalid' });
+      }
+      if (!fs.existsSync(path.join(DATA, b.id))) return json(res, 404, { error: '없는 참여자예요' });
+      const j = readInterview();
+      const p = (j.participants[b.id] = j.participants[b.id] || {});
+      if (v === '') delete p[b.field];
+      else p[b.field] = v;
+      await writeJson(interviewFile, j);
       return json(res, 200, { ok: true });
     }
 

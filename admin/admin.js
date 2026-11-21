@@ -1,5 +1,5 @@
-'use strict';
-// 연구자 페이지. 외부 라이브러리·CDN 없이 바닐라 JS만 쓴다.
+import { STAGES, breakPoint, gap, shortfall } from '/admin/coding-rules.js';
+// 연구자 페이지. 외부 라이브러리·CDN 없이 바닐라 JS만 쓴다. (ES module: 코딩 규칙은 서버와 같은 파일을 쓴다)
 
 const app = document.getElementById('app');
 const warnBar = document.querySelector('.warn');
@@ -338,16 +338,15 @@ async function viewMatrix() {
 }
 
 // ---------- 4. 코딩 ----------
-const STAGES = ['인지', '해석', '작동', '반영'];
-const BREAK = new Set(['아니오', '없음']);
-function breakPoint(c) {
-  c = c || {};
-  for (const s of STAGES) {
-    if (c[s] === undefined) return '미입력';
-    if (BREAK.has(c[s])) return s;
-  }
-  return '끊김 없음';
-}
+const caseLabel = (r, col) => (col(r, 'comment_type') === 's2' ? '② 댓글' : '요청 답변');
+const gapCell = (ivScore, c) => {
+  const g = gap(ivScore, c);
+  return g === 'Y' ? '<span class="mismatch">Y (괴리)</span>' : esc(g || '-');
+};
+const shortCell = (c) => {
+  const v = shortfall(c);
+  return v === 'Y' ? '<b>Y</b>' : esc(v || '-');
+};
 
 async function viewCoding(mode) {
   const coder = sessionStorage.getItem('coder') || '1';
@@ -355,8 +354,35 @@ async function viewCoding(mode) {
   const h = cases.header;
   const col = (r, n) => r[h.indexOf(n)];
   const keyOf = (r) => `${col(r, 'participant_id')}|${col(r, 'comment_id')}`;
-  const tabsHtml = `<div class="tabs"><a href="#/coding" class="${mode !== 'compare' ? 'on' : ''}">입력</a><a href="#/coding/compare" class="${mode === 'compare' ? 'on' : ''}">비교</a></div>`;
+  const tab = (m, label) => `<a href="#/coding${m ? '/' + m : ''}" class="${(mode || '') === m ? 'on' : ''}">${label}</a>`;
+  const tabsHtml = `<div class="tabs">${tab('', '입력')}${tab('compare', '비교')}${tab('consensus', '합의')}${tab('interview', '인터뷰 점수')}</div>`;
+  const ids = [...new Set(cases.rows.map((r) => col(r, 'participant_id')))];
 
+  // ----- 인터뷰 문항 8 점수 -----
+  if (mode === 'interview') {
+    const c = await api('coding?coder=1');
+    const opt = (cur) => `<option value="">-</option>${[1, 2, 3, 4, 5].map((n) => `<option ${Number(cur) === n ? 'selected' : ''}>${n}</option>`).join('')}`;
+    const rows = ids.map((id) => {
+      const iv = c.interview[id] || {};
+      return [esc(id), `<select data-iv="${esc(id)}" data-field="panel">${opt(iv.panel)}</select>`, `<select data-iv="${esc(id)}" data-field="memo">${opt(iv.memo)}</select>`];
+    });
+    shell('coding', `<h1>코딩</h1>${tabsHtml}
+      <p>인터뷰 문항 8: 참여자가 말한 도움 정도(1 전혀 ~ 5 매우)를 입력해요. 선택하면 바로 저장돼요.</p>
+      ${ids.length ? table(['참여자', '접힌 안내(회색 표시) 1~5', '메모 기능 1~5'], rows) : '<p>사례가 없어요.</p>'}
+      <p class="note">지각-행동 괴리: 접힌 안내 점수가 4~5점인데 반영이 ‘미반영’인 사례를 입력·합의 화면에서 자동으로 표시해요.</p>`);
+    app.querySelectorAll('select[data-iv]').forEach((sel) => {
+      sel.onchange = async () => {
+        try {
+          await post('interview', { id: sel.dataset.iv, field: sel.dataset.field, value: sel.value });
+        } catch (err) {
+          if (!(err instanceof Stop)) alert('저장하지 못했어요: ' + err.message);
+        }
+      };
+    });
+    return;
+  }
+
+  // ----- 비교 -----
   if (mode === 'compare') {
     const c = await api('coding?coder=compare');
     const rows = [];
@@ -373,28 +399,104 @@ async function viewCoding(mode) {
       const ba = breakPoint(a);
       const bb = breakPoint(b);
       if (ba !== bb) mism.단절++;
-      rows.push([esc(col(r, 'participant_id')), esc(col(r, 'comment_type') === 's2' ? '② 댓글' : '요청 답변'), ...cells, `<span class="${ba !== bb ? 'mismatch' : ''}">${esc(ba)}</span>`, `<span class="${ba !== bb ? 'mismatch' : ''}">${esc(bb)}</span>`]);
+      const sa = shortfall(a);
+      const sb = shortfall(b);
+      rows.push([esc(col(r, 'participant_id')), esc(caseLabel(r, col)), ...cells,
+        `<span class="${ba !== bb ? 'mismatch' : ''}">${esc(ba)}</span>`, `<span class="${ba !== bb ? 'mismatch' : ''}">${esc(bb)}</span>`,
+        `<span class="${sa !== sb ? 'mismatch' : ''}">${esc(sa || '-')}</span>`, `<span class="${sa !== sb ? 'mismatch' : ''}">${esc(sb || '-')}</span>`]);
     }
     const head = ['참여자', '댓글'];
     STAGES.forEach((s) => head.push(`${s} 코더1`, `${s} 코더2`));
-    head.push('단절 지점 코더1', '단절 지점 코더2');
-    shell('coding', `<h1>코딩</h1>${tabsHtml}<div class="note">두 코더가 서로 다른 칸은 빨간 배경으로 표시돼요. 각자 입력을 끝낸 뒤 합의 단계에서 여세요.</div>
+    head.push('단절 지점 코더1', '단절 지점 코더2', '반영 미달 코더1', '반영 미달 코더2');
+    shell('coding', `<h1>코딩</h1>${tabsHtml}<div class="note">두 코더가 서로 다른 칸은 빨간 배경으로 표시돼요. 각자 입력을 끝낸 뒤 합의 단계에서 여세요. 합의 값은 ‘합의’ 탭에서 입력해요.</div>
       <p>불일치: ${Object.entries(mism).map(([k, v]) => `${k} ${v}건`).join(' · ')}</p>${cases.rows.length ? table(head, rows) : '<p>사례가 없어요.</p>'}`);
     return;
   }
 
+  // ----- 합의 -----
+  if (mode === 'consensus') {
+    const c = await api('coding?coder=compare');
+    const cons = c.consensus.cases;
+    const rows = cases.rows.map((r) => {
+      const k = keyOf(r);
+      const a = c['1'].cases[k] || {};
+      const b = c['2'].cases[k] || {};
+      const cur = cons[k] || {};
+      const cells = [];
+      for (const s of STAGES) {
+        const diff = (a[s] ?? '') !== (b[s] ?? '');
+        cells.push(
+          `<span class="${diff ? 'mismatch' : ''}">${esc(a[s] ?? '-')}</span>`,
+          `<span class="${diff ? 'mismatch' : ''}">${esc(b[s] ?? '-')}</span>`,
+          `<select data-key="${esc(k)}" data-field="${s}"><option value="">-</option>${c.fields[s].map((v) => `<option ${cur[s] === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`,
+        );
+      }
+      const iv = (c.interview[col(r, 'participant_id')] || {}).panel;
+      return [esc(col(r, 'participant_id')), esc(caseLabel(r, col)), ...cells,
+        `<b data-d="break" data-k="${esc(k)}">${esc(breakPoint(cur))}</b>`,
+        `<span data-d="short" data-k="${esc(k)}">${shortCell(cur)}</span>`,
+        `<span data-d="gap" data-k="${esc(k)}" data-iv="${iv ?? ''}">${gapCell(iv, cur)}</span>`];
+    });
+    const head = ['참여자', '댓글'];
+    STAGES.forEach((s) => head.push(`${s} 코더1`, `${s} 코더2`, `${s} 합의`));
+    head.push('단절 지점(합의)', '반영 미달', '지각-행동 괴리');
+    shell('coding', `<h1>코딩</h1>${tabsHtml}
+      <div class="row"><button class="btn" id="fill">두 코더가 같은 칸을 합의 값으로 채우기</button><span>이미 합의 값이 있는 칸은 건드리지 않아요. 선택하면 바로 data/coding/consensus.json 에 저장돼요.</span></div>
+      ${cases.rows.length ? table(head, rows) : '<p>사례가 없어요.</p>'}
+      <p class="note">cases.csv 의 ‘합의’ 열, 단절 지점, 반영 미달, 지각-행동 괴리는 이 화면의 합의 값으로 계산돼요.</p>`);
+    const refresh = (k) => {
+      const cur = cons[k] || {};
+      app.querySelector(`[data-d="break"][data-k="${CSS.escape(k)}"]`).textContent = breakPoint(cur);
+      app.querySelector(`[data-d="short"][data-k="${CSS.escape(k)}"]`).innerHTML = shortCell(cur);
+      const g = app.querySelector(`[data-d="gap"][data-k="${CSS.escape(k)}"]`);
+      g.innerHTML = gapCell(g.dataset.iv === '' ? null : g.dataset.iv, cur);
+    };
+    app.querySelectorAll('select[data-key]').forEach((sel) => {
+      sel.onchange = async () => {
+        const k = sel.dataset.key;
+        try {
+          await post('coding', { coder: 'consensus', key: k, field: sel.dataset.field, value: sel.value });
+          cons[k] = cons[k] || {};
+          if (sel.value === '') delete cons[k][sel.dataset.field];
+          else cons[k][sel.dataset.field] = sel.value;
+          refresh(k);
+        } catch (err) {
+          if (!(err instanceof Stop)) alert('저장하지 못했어요: ' + err.message);
+        }
+      };
+    });
+    document.getElementById('fill').onclick = async () => {
+      try {
+        for (const r of cases.rows) {
+          const k = keyOf(r);
+          const a = c['1'].cases[k] || {};
+          const b = c['2'].cases[k] || {};
+          for (const s of STAGES) {
+            if (a[s] && a[s] === b[s] && !(cons[k] || {})[s]) await post('coding', { coder: 'consensus', key: k, field: s, value: a[s] });
+          }
+        }
+      } catch (err) {
+        if (!(err instanceof Stop)) alert('저장하지 못했어요: ' + err.message);
+      }
+      route();
+    };
+    return;
+  }
+
+  // ----- 입력 (코더별, 다른 코더 입력은 보이지 않음) -----
   const mine = await api('coding?coder=' + coder);
   const store = mine.cases;
   const rows = cases.rows.map((r) => {
     const k = keyOf(r);
     const cur = store[k] || {};
+    const iv = (mine.interview[col(r, 'participant_id')] || {}).panel;
     const selects = STAGES.map(
       (s) =>
         `<select data-key="${esc(k)}" data-field="${s}"><option value="">-</option>${mine.fields[s].map((v) => `<option ${cur[s] === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`,
     );
     return [
       `<a href="#/p/${esc(col(r, 'participant_id'))}/panel" target="_blank">${esc(col(r, 'participant_id'))}</a>`,
-      esc(col(r, 'comment_type') === 's2' ? '② 댓글' : '요청 답변'),
+      esc(caseLabel(r, col)),
       esc(col(r, '패널_화면노출_ms')),
       esc(col(r, '패널_hover_횟수')),
       esc(col(r, '펼침_횟수')),
@@ -403,7 +505,9 @@ async function viewCoding(mode) {
       esc(col(r, '자발적_탐지_후보(펼침전_메모)')),
       `<div class="pre">${esc(col(r, 'v1→v2_변경_문장번호') || '-')}</div>`,
       ...selects,
-      `<b data-break="${esc(k)}">${esc(breakPoint(cur))}</b>`,
+      `<b data-d="break" data-k="${esc(k)}">${esc(breakPoint(cur))}</b>`,
+      `<span data-d="short" data-k="${esc(k)}">${shortCell(cur)}</span>`,
+      `<span data-d="gap" data-k="${esc(k)}" data-iv="${iv ?? ''}">${gapCell(iv, cur)}</span>`,
     ];
   });
   shell(
@@ -411,8 +515,8 @@ async function viewCoding(mode) {
     `<h1>코딩</h1>${tabsHtml}
     <div class="row">코더: <select id="coder"><option value="1" ${coder === '1' ? 'selected' : ''}>코더 1</option><option value="2" ${coder === '2' ? 'selected' : ''}>코더 2</option></select>
     <span>선택하면 바로 data/coding/coder${coder}.json 에 저장돼요. 이 화면에는 다른 코더의 입력이 보이지 않아요.</span></div>
-    ${cases.rows.length ? table(['참여자', '댓글', '패널 노출 ms', '패널 hover', '펼침 횟수', '누적 펼침 ms', '3초 이상', '자발적 후보', '변경 문장', ...STAGES, '단절 지점'], rows) : '<p>사례가 없어요.</p>'}
-    <p class="note">단절 지점: 앞 단계부터 보아 ‘아니오’ 또는 ‘없음’인 첫 단계예요. 모두 입력되기 전에는 ‘미입력’, 끊긴 곳이 없으면 ‘끊김 없음’이에요.</p>`,
+    ${cases.rows.length ? table(['참여자', '댓글', '패널 노출 ms', '패널 hover', '펼침 횟수', '누적 펼침 ms', '3초 이상', '자발적 후보', '변경 문장', ...STAGES, '단절 지점', '반영 미달', '지각-행동 괴리'], rows) : '<p>사례가 없어요.</p>'}
+    <p class="note">단절 지점: 앞 단계부터 보아 ‘아니오’ 또는 ‘없음’인 첫 단계예요. 모두 입력되기 전에는 ‘미입력’, 끊긴 곳이 없으면 ‘끊김 없음’이에요.<br>반영 미달: 반영이 ‘미반영’ 또는 ‘동조 댓글만 반영’이면 Y, ‘부분’이면 부분. 지각-행동 괴리: 인터뷰 문항 8의 접힌 안내 점수가 4~5점인데 반영이 ‘미반영’이면 표시돼요(점수는 ‘인터뷰 점수’ 탭).</p>`,
   );
   document.getElementById('coder').onchange = (e) => {
     sessionStorage.setItem('coder', e.target.value);
@@ -426,7 +530,11 @@ async function viewCoding(mode) {
         store[k] = store[k] || {};
         if (sel.value === '') delete store[k][sel.dataset.field];
         else store[k][sel.dataset.field] = sel.value;
-        app.querySelector(`[data-break="${CSS.escape(k)}"]`).textContent = breakPoint(store[k]);
+        const q = (d) => app.querySelector(`[data-d="${d}"][data-k="${CSS.escape(k)}"]`);
+        q('break').textContent = breakPoint(store[k]);
+        q('short').innerHTML = shortCell(store[k]);
+        const g = q('gap');
+        g.innerHTML = gapCell(g.dataset.iv === '' ? null : g.dataset.iv, store[k]);
       } catch (err) {
         if (!(err instanceof Stop)) alert('저장하지 못했어요: ' + err.message);
       }

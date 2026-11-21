@@ -55,7 +55,7 @@ export function purgeParticipant(id) {
   const coding = [];
   const codingDir = path.join(DATA, 'coding');
   if (fs.existsSync(codingDir)) {
-    for (const f of fs.readdirSync(codingDir).filter((n) => /^coder\d\.json$/.test(n))) {
+    for (const f of fs.readdirSync(codingDir).filter((n) => /^(coder\d|consensus)\.json$/.test(n))) {
       const file = path.join(codingDir, f);
       const j = JSON.parse(fs.readFileSync(file, 'utf8'));
       let removed = 0;
@@ -68,6 +68,16 @@ export function purgeParticipant(id) {
       if (removed > 0) fs.writeFileSync(file, JSON.stringify(j, null, 2));
       coding.push({ file: f, removed });
     }
+  }
+  const iv = path.join(codingDir, 'interview.json');
+  if (fs.existsSync(iv)) {
+    const j = JSON.parse(fs.readFileSync(iv, 'utf8'));
+    const had = j.participants && j.participants[id] ? 1 : 0;
+    if (had) {
+      delete j.participants[id];
+      fs.writeFileSync(iv, JSON.stringify(j, null, 2));
+    }
+    coding.push({ file: 'interview.json', removed: had });
   }
   return { folders, csv, coding };
 }

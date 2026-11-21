@@ -2,10 +2,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { breakPoint, gap, shortfall } from './coding-rules.js';
 
 export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const DATA = path.join(ROOT, 'data');
 export const EXPORT_DIR = path.join(DATA, 'export');
+export const CODING_DIR = path.join(DATA, 'coding');
 export const ID_RE = /^S2-P\d{2,3}$/;
 export const MARKS = ['①', '②', '③', '④'];
 
@@ -28,6 +30,18 @@ export const toCsv = (header, rows) => '﻿' + [header, ...rows].map((r) => r.ma
 export const iso = (ts) => (ts ? new Date(ts).toISOString() : '');
 export const text = (arr) => (arr ? arr.map((t, i) => `${MARKS[i]} ${t}`).join('\n') : '');
 export const readJson = (f) => (fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null);
+
+// data/coding 의 코더 1·2, 합의, 인터뷰 문항 8 점수
+export function loadCoding() {
+  const get = (f) => readJson(path.join(CODING_DIR, f)) || {};
+  return {
+    1: get('coder1.json').cases || {},
+    2: get('coder2.json').cases || {},
+    consensus: get('consensus.json').cases || {},
+    interview: get('interview.json').participants || {},
+  };
+}
+const NO_CODING = { 1: {}, 2: {}, consensus: {}, interview: {} };
 
 export function readEvents(id) {
   const f = path.join(DATA, id, 'events.jsonl');
@@ -87,7 +101,23 @@ function intervals(events, target, onEvt, offEvt, closeAt) {
 }
 const sum = (iv) => iv.reduce((a, [s, e]) => a + (e - s), 0);
 
-export function buildCases(id, p, events) {
+// 코더 1·2 값, 합의 값, 반영 미달, 인터뷰 점수, 지각-행동 괴리 (코딩 전이면 빈칸)
+function codingCells(id, cid, coding) {
+  const key = `${id}|${cid}`;
+  const c1 = coding[1][key] || {};
+  const c2 = coding[2][key] || {};
+  const cc = coding.consensus[key] || {};
+  const iv = coding.interview[id] || {};
+  const brk = (c) => (Object.keys(c).length ? breakPoint(c) : '');
+  return [
+    c1.인지 ?? '', c2.인지 ?? '', c1.해석 ?? '', c2.해석 ?? '', c1.작동 ?? '', c2.작동 ?? '', c1.반영 ?? '', c2.반영 ?? '',
+    brk(c1), brk(c2),
+    cc.인지 ?? '', cc.해석 ?? '', cc.작동 ?? '', cc.반영 ?? '', brk(cc),
+    shortfall(cc), iv.panel ?? '', iv.memo ?? '', gap(iv.panel, cc),
+  ];
+}
+
+export function buildCases(id, p, events, coding = NO_CODING) {
   if (!p.setKey) return [];
   const s5 = events.filter((e) => e.screen === 'S5');
   const last = s5.length ? s5[s5.length - 1].timestamp_ms : 0;
@@ -131,7 +161,7 @@ export function buildCases(id, p, events) {
       iso(first), first, shown && first ? first - shown.timestamp_ms : '',
       expands.length, sum(expand), expand.some(([a, b]) => b - a >= 3000) ? 'Y' : 'N',
       nums, changedBefore, changedAfter, early ? 'Y' : 'N', reactions, editedBefore ? 'Y' : 'N',
-      '', '', '', '', '', '', '', '',
+      ...codingCells(id, cid, coding),
     ];
   });
 }
@@ -143,6 +173,9 @@ export const caseHeader = [
   '패널_화면노출_ms', '댓글_hover_횟수', '패널_hover_횟수', '첫_펼침_시각', '첫_펼침_ts', '피드백후_첫펼침까지_ms',
   '펼침_횟수', '누적_펼침_ms', '3초이상_펼침', 'v1→v2_변경_문장번호', '변경전_텍스트', '변경후_텍스트', '자발적_탐지_후보(펼침전_메모)', '펼침전_메모_반응', '펼침전_해당문장_편집',
   '인지_코더1', '인지_코더2', '해석_코더1', '해석_코더2', '작동_코더1', '작동_코더2', '반영_코더1', '반영_코더2',
+  '단절지점_코더1', '단절지점_코더2',
+  '인지_합의', '해석_합의', '작동_합의', '반영_합의', '단절지점_합의',
+  '반영_미달', '인터뷰8_표시점수', '인터뷰8_메모점수', '지각행동_괴리',
 ];
 export const verHeader = ['participant_id', 'v1', 'v2'];
 
@@ -160,6 +193,7 @@ export function buildExport(ids) {
   const totalCounts = {};
   const positions = { relative: 0, absolute: 0 };
   const lines = [];
+  const coding = loadCoding();
 
   for (const id of ids) {
     if (!fs.existsSync(path.join(DATA, id))) {
@@ -177,7 +211,7 @@ export function buildExport(ids) {
     p.memos.forEach((m) => memoRows.push(memoRow(id, m, '현재')));
     p.deleted.forEach((m) => memoRows.push(memoRow(id, m, '삭제')));
     if (p.position in positions) positions[p.position]++;
-    caseRows.push(...buildCases(id, p, events));
+    caseRows.push(...buildCases(id, p, events, coding));
     verRows.push([id, text(p.v1), text(p.v2)]);
 
     lines.push('', `[${id}] 이벤트 ${events.length}개${p.hasSaved ? '' : '  (세션 파일 없음: state.json 사용)'}`);
