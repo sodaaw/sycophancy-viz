@@ -750,7 +750,7 @@ h3 {
   font-weight: 500;
   white-space: nowrap;
 }
-.coach-0 .comment-card,
+.coach-0 .coach-banner,
 .coach-1 .reaction-group,
 .coach-2 .memo-input,
 .coach-3 .memo-mark {
@@ -807,13 +807,4 @@ h3 {
   height: 40px;
   padding: 0 20px;
   font-size: 15px;
-}
-
-.memo-hl {
-  background: var(--hl);
-  color: inherit;
-  border-radius: 4px;
-  padding: 1px 0;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
 }

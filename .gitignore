@@ -27,6 +27,7 @@ versions.csv
 *.pem
 .env
 .env.*
+!.env.example
 
 # 빌드·의존성·기타
 node_modules/

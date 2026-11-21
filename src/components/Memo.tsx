@@ -46,17 +46,15 @@ const offsetIn = (root: HTMLElement, node: Node, off: number) => {
 const rectToAnchor = (r: DOMRect): Anchor => ({ left: r.left, top: r.top, bottom: r.bottom });
 
 export function MemoLayer({ children, coach = false }: { children: ReactNode; coach?: boolean }) {
-  const { session, update, log } = useSession();
+  const { session, update, log, registerExit } = useSession();
   const [pop, setPop] = useState<Popover | null>(null);
-  const [reaction, setReaction] = useState<string | null>(null);
   const [text, setText] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
-  const openPop = useCallback((p: Popover, r: string | null, t: string) => {
+  const openPop = useCallback((p: Popover, t: string) => {
     setPop(p);
-    setReaction(r);
     setText(t);
     setPos(null);
   }, []);
@@ -64,7 +62,7 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
   const openEdit = useCallback(
     (memo: Memo, el: HTMLElement) => {
       update((s) => ({ ...s, practiceMarkerOpened: true }));
-      openPop({ mode: 'edit', memo, anchor: rectToAnchor(el.getBoundingClientRect()) }, memo.reaction, memo.text);
+      openPop({ mode: 'edit', memo, anchor: rectToAnchor(el.getBoundingClientRect()) }, memo.text);
     },
     [openPop, update],
   );
@@ -107,7 +105,7 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
     while (end > start && /\s/.test(full[end - 1])) end--;
     if (end <= start) return;
     const blockId = blockEl.dataset.memoBlock!;
-    openPop({ mode: 'create', blockId, start, end, quote: full.slice(start, end), anchor: rectToAnchor(rect) }, null, '');
+    openPop({ mode: 'create', blockId, start, end, quote: full.slice(start, end), anchor: rectToAnchor(rect) }, '');
   };
 
   // 팝오버 위치 보정 (화면 밖으로 나가지 않게)
@@ -121,34 +119,57 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
     if (top + h > vh - 8) top = Math.max(8, pop.anchor.top - h - 8);
     const left = Math.min(Math.max(8, pop.anchor.left), vw - w - 8);
     setPos({ left, top });
-  }, [pop, reaction]);
+  }, [pop]);
 
-  const close = useCallback(() => setPop(null), []);
+  const mkey = (m: Memo) => `${m.blockId}:${m.start}-${m.end}`;
+  const curMemo = pop?.mode === 'edit' ? session?.memos.find((m) => m.id === pop.memo.id) : undefined;
 
-  // 바깥 클릭/ESC로 닫기
+  // 한 줄 메모가 바뀌었으면 memo_edit 로 기록 (바뀐 게 없으면 아무것도 하지 않는다)
+  const commitText = () => {
+    if (!pop || pop.mode !== 'edit') return;
+    const trimmed = text.trim();
+    const id = pop.memo.id;
+    let logged: Memo | null = null;
+    update((s) => {
+      const m = s.memos.find((x) => x.id === id);
+      if (!m || m.text === trimmed) return s;
+      logged = { ...m, text: trimmed, updatedTs: Date.now() };
+      return { ...s, memos: s.memos.map((x) => (x.id === id ? logged! : x)) };
+    });
+    if (logged) log('memo_edit', mkey(logged), { reaction: (logged as Memo).reaction, text: trimmed });
+  };
+
+  const close = () => {
+    commitText();
+    setPop(null);
+  };
+  const closeRef = useRef(close);
+  closeRef.current = close;
+
+  // 바깥 클릭/ESC로 닫기, 화면을 떠날 때 입력 중인 메모 저장
   useEffect(() => {
     if (!pop) return;
     const onDown = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
       if (t.closest('.memo-pop') || t.closest('.memo-mark')) return;
-      if (rootRef.current?.contains(t)) {
-        // 같은 화면 안의 클릭은 새 메모 시도일 수 있으므로 팝오버만 닫는다
-      }
-      close();
+      closeRef.current();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') closeRef.current();
     };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
+    const unreg = registerExit(() => closeRef.current());
     return () => {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
+      unreg();
     };
-  }, [pop, close]);
+  }, [pop?.mode, registerExit]);
 
-  const save = () => {
-    if (!pop || !reaction) return;
+  // 반응 버튼: 누르는 즉시 저장 (새 메모면 memo_create, 이미 있으면 반응이 바뀔 때 memo_edit)
+  const pick = (r: string) => {
+    if (!pop) return;
     const now = Date.now();
     const trimmed = text.trim();
     if (pop.mode === 'create') {
@@ -158,37 +179,34 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
         start: pop.start,
         end: pop.end,
         quote: pop.quote,
-        reaction,
+        reaction: r,
         text: trimmed,
         screen: session!.screen,
         createdTs: now,
         updatedTs: now,
       };
       update((s) => ({ ...s, memos: [...s.memos, memo] }));
-      log('memo_create', `${memo.blockId}:${memo.start}-${memo.end}`, { reaction, text: trimmed });
-    } else {
-      const m = pop.memo;
-      update((s) => ({
-        ...s,
-        memos: s.memos.map((x) => (x.id === m.id ? { ...x, reaction, text: trimmed, updatedTs: now } : x)),
-      }));
-      log('memo_edit', `${m.blockId}:${m.start}-${m.end}`, { reaction, text: trimmed });
+      log('memo_create', mkey(memo), { reaction: r, text: trimmed });
+      window.getSelection()?.removeAllRanges();
+      setPop({ mode: 'edit', memo, anchor: pop.anchor });
+    } else if (curMemo && curMemo.reaction !== r) {
+      const next = { ...curMemo, reaction: r, text: trimmed, updatedTs: now };
+      update((s) => ({ ...s, memos: s.memos.map((x) => (x.id === next.id ? next : x)) }));
+      log('memo_edit', mkey(next), { reaction: r, text: trimmed });
     }
-    window.getSelection()?.removeAllRanges();
-    close();
   };
 
   const remove = () => {
-    if (!pop || pop.mode !== 'edit') return;
-    const m = pop.memo;
+    if (!pop || pop.mode !== 'edit' || !curMemo) return;
+    const m = curMemo;
     const now = Date.now();
     update((s) => ({
       ...s,
       memos: s.memos.filter((x) => x.id !== m.id),
       deletedMemos: [...s.deletedMemos, { ...m, deletedTs: now }],
     }));
-    log('memo_delete', `${m.blockId}:${m.start}-${m.end}`, { reaction: m.reaction, text: m.text });
-    close();
+    log('memo_delete', mkey(m), { reaction: m.reaction, text: m.text });
+    setPop(null);
   };
 
   // 코치마크 단계 (S2 전용)
@@ -198,23 +216,20 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
     if (!pop) {
       if (practiceMemos.length === 0) step = 0;
       else if (!session?.practiceMarkerOpened) step = 3;
-    } else if (pop.mode === 'create') {
-      step = reaction ? 2 : 1;
-    }
+    } else if (pop.mode === 'create') step = 1;
+    else if (!session?.practiceMarkerOpened) step = 2;
   }
 
   const ui = useMemo(() => ({ openEdit }), [openEdit]);
-  const canSave = !!reaction;
-  const unchanged = pop?.mode === 'edit' && pop.memo.reaction === reaction && pop.memo.text === text.trim();
+  const selected = curMemo?.reaction ?? null;
+  const quote = pop ? (pop.mode === 'create' ? pop.quote : pop.memo.quote) : '';
 
   return (
     <MemoUICtx.Provider value={ui}>
       <div ref={rootRef} className={`memo-layer${step >= 0 ? ` coach-${step}` : ''}`} onMouseUp={onMouseUp}>
         {step >= 0 && (
           <div className="coach-banner" role="status">
-            <span className="coach-count">
-              {step + 1}/4
-            </span>
+            <span className="coach-count">{step + 1}/4</span>
             <span>{content.coach[step]}</span>
           </div>
         )}
@@ -229,8 +244,8 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
           aria-label="메모"
         >
           <p className="memo-quote">
-            {(pop.mode === 'create' ? pop.quote : pop.memo.quote).slice(0, 60)}
-            {(pop.mode === 'create' ? pop.quote : pop.memo.quote).length > 60 ? '…' : ''}
+            {quote.slice(0, 60)}
+            {quote.length > 60 ? '…' : ''}
           </p>
           <div className="reaction-group" role="radiogroup" aria-label="반응">
             {content.memo.reactions.map((r) => (
@@ -238,9 +253,9 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
                 key={r}
                 type="button"
                 role="radio"
-                aria-checked={reaction === r}
-                className={`reaction-btn${reaction === r ? ' is-selected' : ''}`}
-                onClick={() => setReaction(r)}
+                aria-checked={selected === r}
+                className={`reaction-btn${selected === r ? ' is-selected' : ''}`}
+                onClick={() => pick(r)}
               >
                 {r}
               </button>
@@ -253,8 +268,11 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
             maxLength={120}
             placeholder={content.memo.inputPlaceholder}
             onChange={(e) => setText(e.target.value)}
+            onBlur={commitText}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && canSave && !e.nativeEvent.isComposing) save();
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                if (pop.mode === 'edit') close();
+              }
             }}
           />
           <div className="memo-actions">
@@ -265,12 +283,9 @@ export function MemoLayer({ children, coach = false }: { children: ReactNode; co
               </button>
             )}
             <span className="spacer" />
-            {!canSave && <span className="memo-hint">반응을 하나 골라 주세요</span>}
+            <span className="memo-hint">{pop.mode === 'create' ? '반응을 누르면 바로 저장돼요' : '자동으로 저장돼요'}</span>
             <button type="button" className="btn btn-quiet" onClick={close}>
-              취소
-            </button>
-            <button type="button" className="btn btn-primary btn-sm" disabled={!canSave || unchanged} onClick={save}>
-              저장
+              닫기
             </button>
           </div>
         </div>
@@ -313,8 +328,7 @@ export function MemoText({ blockId, text, className }: { blockId: string; text: 
     }
     if (b !== undefined && b > a) {
       const piece = text.slice(a, b);
-      const covered = memos.some((m) => cut(m.start) <= a && cut(m.end) >= b);
-      nodes.push(covered ? <mark key={`t${a}`} className="memo-hl">{piece}</mark> : piece);
+      nodes.push(piece);
     }
   }
 
