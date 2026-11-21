@@ -1,6 +1,13 @@
 # Study 2 실험 프로토타입
 
-1. `npm install` (처음 한 번만, 이후는 인터넷 없이 동작)
-2. `npm run build && npm start` 후 브라우저에서 http://localhost:3000 열기
-3. 세션 후 `npm run export all` → `data/export/*.csv` (참여자 자료는 `data/S2-Pxx/`)
-# sycophancy-viz
+사전 제작 피드백을 보며 글을 고치는 세션용 로컬 웹앱입니다. 외부 서버, 클라우드, 분석 도구, AI 호출을 쓰지 않습니다.
+
+## 실행
+1. `npm install`
+2. `npm run build && npm start` 후 브라우저에서 http://localhost:3000 열기 (포트 변경: `PORT=3001 npm start`)
+3. 세션 후 `npm run export all`
+
+## 참여자 자료 (이 저장소에 없음)
+- 세션 중 생기는 모든 자료(로그, 상태, 수정본, 메모, 내보내기 파일)는 실행한 컴퓨터의 `data/` 폴더에만 저장되며 git에서 제외됩니다.
+- 이 저장소에는 참여자 자료, 이름, 연락처, 녹음·녹화, 동의서가 없습니다. 앞으로도 올리지 않습니다.
+- 서버는 `127.0.0.1`에만 열리고 외부로 아무것도 전송하지 않습니다.

@@ -1,0 +1,66 @@
+/* 디자인 토큰: 색·글꼴·크기는 여기서만 바꾼다 */
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  src: url('./fonts/Pretendard-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+  src: url('./fonts/Pretendard-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+  src: url('./fonts/Pretendard-SemiBold.woff2') format('woff2');
+}
+
+:root {
+  --font: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --tracking: -0.002em; /* 자간 -0.2% */
+
+  --bg: #f6f5f0;
+  --surface: #ffffff;
+  --surface-2: #f0efe9;
+  --border: #e4e2d9;
+  --border-strong: #cfcdc2;
+
+  --text: #15181a;
+  --text-2: #4c5154;
+  --text-3: #7a7e80;
+
+  --accent: #84de92;
+  --accent-hover: #72d283;
+  --accent-ink: #0f3a1b;
+  --accent-soft: #e5f6e8;
+
+  --focus: #2f66f5;
+  --focus-soft: #f0f3fc;
+  --focus-ring: #b9c8ee;
+  --hl: #e4f5e7; /* 메모 구간 표시 */
+
+  --danger: #d03a2f;
+  --warn-bg: #fff6e3;
+  --warn-border: #efd9a6;
+  --warn-text: #6b4a00;
+
+  --disabled-bg: #eceae3;
+  --disabled-text: #a7a69d;
+
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow-pop: 0 10px 30px rgba(20, 28, 22, 0.16);
+
+  --fs-base: 16px;
+  --fs-small: 14px;
+  --fs-title: 26px;
+  --fs-pane: 17px;
+  --lh-body: 1.75;
+}

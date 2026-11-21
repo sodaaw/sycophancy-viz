@@ -1,0 +1,36 @@
+# 참여자 자료: 절대 커밋하지 않는다
+data/
+**/data/
+export/
+*_세션.json
+state.json
+events.jsonl
+events.csv
+memos.csv
+cases.csv
+versions.csv
+*.csv
+*.jsonl
+
+# 녹음·녹화·전사·동의서·대응표
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.mov
+*.webm
+*.pdf
+*.docx
+*.xlsx
+*.hwp
+*.key
+*.pem
+.env
+.env.*
+
+# 빌드·의존성·기타
+node_modules/
+dist/
+.DS_Store
+*.log
+*.tmp
