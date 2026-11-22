@@ -175,8 +175,13 @@ async function handleStatic(req, res, url) {
 
 export async function handler(req, res) {
   try {
-    // Vercel: /admin 요청은 /api/admin-proxy 로 다시 쓰여서 들어온다
-    req.url = req.url.replace(/^\/api\/admin-proxy(?=\/|\?|$)/, '/admin');
+    // Vercel: 모든 요청이 /api/server?p=<원래 경로> 로 다시 쓰여서 들어온다 (vercel.json 참고)
+    const raw = new URL(req.url, 'http://x');
+    if (raw.pathname === '/api/server' && raw.searchParams.has('p')) {
+      const original = raw.searchParams.get('p');
+      raw.searchParams.delete('p');
+      req.url = original + raw.search;
+    }
     const url = new URL(req.url, `http://${HOST}`);
     if (url.pathname === '/admin' || url.pathname.startsWith('/admin/')) return await handleAdmin(req, res, url);
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);

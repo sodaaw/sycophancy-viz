@@ -1,10 +1,11 @@
 {
   "rewrites": [
-    { "source": "/admin", "destination": "/api/admin-proxy" },
-    { "source": "/admin/:path*", "destination": "/api/admin-proxy/:path*" }
+    { "source": "/admin", "destination": "/api/server?p=/admin" },
+    { "source": "/admin/:path*", "destination": "/api/server?p=/admin/:path*" },
+    { "source": "/api/:path+", "destination": "/api/server?p=/api/:path+" }
   ],
   "functions": {
-    "api/**/*.js": {
+    "api/server.js": {
       "includeFiles": "{admin/**,demo-data/**,src/content.json,scripts/lib/**}"
     }
   }
