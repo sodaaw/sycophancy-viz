@@ -1,0 +1,58 @@
+{"participant_id":"S2-P92","timestamp_ms":1795274988512,"screen":"S1-intro","event":"screen_enter","target":"S1-intro","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274988872,"screen":"S1-intro","event":"screen_exit","target":"S1-intro","detail":{"ms":361,"reason":"next"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274988872,"screen":"S1","event":"screen_enter","target":"S1","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989073,"screen":"S1","event":"screen_exit","target":"S1","detail":{"ms":201,"reason":"next"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989073,"screen":"S2","event":"screen_enter","target":"S2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989075,"screen":"S2","event":"feedback_shown","target":"P-1","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989075,"screen":"S2","event":"feedback_shown","target":"P-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989088,"screen":"S2","event":"comment_in_view","target":"P-1","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989088,"screen":"S2","event":"comment_in_view","target":"P-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989205,"screen":"S2","event":"memo_create","target":"P-1:0-33","detail":{"reaction":"좋음","text":""}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989255,"screen":"S2","event":"memo_edit","target":"P-1:0-33","detail":{"reaction":"좋음","text":"연습 메모"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989355,"screen":"S2","event":"memo_edit","target":"P-1:0-33","detail":{"reaction":"이상함","text":"연습 메모"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989455,"screen":"S2","event":"memo_create","target":"P-2:0-28","detail":{"reaction":"무슨 뜻인지 모르겠음","text":""}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989523,"screen":"S2","event":"memo_delete","target":"P-2:0-28","detail":{"reaction":"무슨 뜻인지 모르겠음","text":""}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989605,"screen":"S2","event":"comment_out_of_view","target":"P-1","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989606,"screen":"S2","event":"comment_out_of_view","target":"P-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274989606,"screen":"S2","event":"screen_exit","target":"S2","detail":{"ms":533,"reason":"next"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274989606,"screen":"S3","event":"screen_enter","target":"S3","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990048,"screen":"S3","event":"screen_exit","target":"S3","detail":{"ms":442,"reason":"next"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274990049,"screen":"S4","event":"screen_enter","target":"S4","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990574,"screen":"S4","event":"editor_change","target":"2","detail":{"before":"상대평가가 학생들 사이에 불필요한 경쟁을 만든다는 것은 명백하다.","after":"수정한 두 번째 문장\n줄바꿈 가능"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274990574,"screen":"S4","event":"submit_v1","target":"draft","detail":"① 대학 성적은 절대평가로 바뀌어야 한다.\n② 수정한 두 번째 문장\n줄바꿈 가능\n③ 나도 지난 학기에 열심히 했는데 상대평가 때문에 B를 받아 억울했다.\n④ 절대평가에서는 기준만 넘으면 되므로 학생 간 협력이 늘어난다."}
+{"participant_id":"S2-P92","timestamp_ms":1795274990574,"screen":"S4","event":"screen_exit","target":"S4","detail":{"ms":525,"reason":"next"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274990575,"screen":"S5","event":"screen_enter","target":"S5","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990640,"screen":"S5","event":"feedback_shown","target":"B1-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990640,"screen":"S5","event":"feedback_shown","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990684,"screen":"S5","event":"comment_in_view","target":"B1-2-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990684,"screen":"S5","event":"comment_in_view","target":"B1-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990684,"screen":"S5","event":"comment_in_view","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990684,"screen":"S5","event":"comment_in_view","target":"B1-R-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990824,"screen":"S5","event":"panel_expand","target":"B1-2-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990838,"screen":"S5","event":"comment_out_of_view","target":"B1-R-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274990838,"screen":"S5","event":"comment_out_of_view","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274992189,"screen":"S5","event":"hover","target":"B1-2-P","detail":1366}
+{"participant_id":"S2-P92","timestamp_ms":1795274992189,"screen":"S5","event":"memo_create","target":"B1-2-P.0:0-58","detail":{"reaction":"이상함","text":""}}
+{"participant_id":"S2-P92","timestamp_ms":1795274993522,"screen":"S5","event":"panel_collapse","target":"B1-2-P","detail":{"ms":2698}}
+{"participant_id":"S2-P92","timestamp_ms":1795274993539,"screen":"S5","event":"comment_in_view","target":"B1-R-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274993539,"screen":"S5","event":"comment_in_view","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274993556,"screen":"S5","event":"hover","target":"B1-2-P","detail":1319}
+{"participant_id":"S2-P92","timestamp_ms":1795274993557,"screen":"S5","event":"panel_expand","target":"B1-R-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274993572,"screen":"S5","event":"comment_out_of_view","target":"B1-R-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994072,"screen":"S5","event":"editor_change","target":"1","detail":{"before":"대학 성적은 절대평가로 바뀌어야 한다.","after":"첫 문장 수정"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274994072,"screen":"S5","event":"editor_change","target":"1","detail":{"before":"대학 성적은 절대평가로 바뀌어야 한다.","after":"첫 문장 수정"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274994072,"screen":"S5","event":"comment_out_of_view","target":"B1-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994072,"screen":"S5","event":"comment_out_of_view","target":"B1-2-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994072,"screen":"S5","event":"comment_out_of_view","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994072,"screen":"S5","event":"screen_exit","target":"S5","detail":{"ms":3498,"reason":"unload"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274994091,"screen":"S5","event":"screen_enter","target":"S5","detail":{"restored":true}}
+{"participant_id":"S2-P92","timestamp_ms":1795274994091,"screen":"S5","event":"panel_expand","target":"B1-R-P","detail":{"restored":true}}
+{"participant_id":"S2-P92","timestamp_ms":1795274994121,"screen":"S5","event":"comment_in_view","target":"B1-2-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994121,"screen":"S5","event":"comment_in_view","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994121,"screen":"S5","event":"comment_in_view","target":"B1-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994306,"screen":"S5","event":"submit_v2","target":"draft","detail":"① 첫 문장 수정\n② 수정한 두 번째 문장\n줄바꿈 가능\n③ 나도 지난 학기에 열심히 했는데 상대평가 때문에 B를 받아 억울했다.\n④ 절대평가에서는 기준만 넘으면 되므로 학생 간 협력이 늘어난다."}
+{"participant_id":"S2-P92","timestamp_ms":1795274994306,"screen":"S5","event":"comment_out_of_view","target":"B1-2","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994306,"screen":"S5","event":"comment_out_of_view","target":"B1-2-P","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994306,"screen":"S5","event":"comment_out_of_view","target":"B1-R","detail":null}
+{"participant_id":"S2-P92","timestamp_ms":1795274994306,"screen":"S5","event":"screen_exit","target":"S5","detail":{"ms":216,"reason":"next"}}
+{"participant_id":"S2-P92","timestamp_ms":1795274994307,"screen":"S6","event":"screen_enter","target":"S6","detail":null}

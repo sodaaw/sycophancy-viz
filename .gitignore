@@ -35,3 +35,7 @@ dist/
 .DS_Store
 *.log
 *.tmp
+
+# 데모용 가상 데이터(S2-P91, S2-P92)만 예외로 올린다. 실제 참여자 자료는 올리지 않는다.
+!demo-data/
+!demo-data/**

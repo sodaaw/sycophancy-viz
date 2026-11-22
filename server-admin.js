@@ -11,6 +11,7 @@ import {
 } from './scripts/lib/analysis.js';
 import { FIELDS as CODING_FIELDS } from './scripts/lib/coding-rules.js';
 import { purgeParticipant } from './scripts/lib/purge.js';
+import { DEMO } from './demo.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const ADMIN_DIR = path.join(ROOT, 'admin');
@@ -34,28 +35,36 @@ const PIN = loadPin();
 const digest = (s) => crypto.createHash('sha256').update(String(s)).digest();
 if (!PIN) console.warn('[admin] PIN 이 설정되지 않아 /admin 이 비활성화되어 있어요 (.env 의 ADMIN_PIN 또는 --admin-pin=).');
 
-const sessions = new Map(); // token -> expiry
 let fails = []; // 최근 로그인 실패 시각
 
 const SESSION_MS = 60 * 60 * 1000;
 
+// 서버리스(인스턴스가 바뀌는 환경)에서도 로그인이 유지되도록, 서버에 세션을 저장하지 않고 서명된 토큰을 쓴다.
+const SECRET = crypto.createHash('sha256').update(`admin-session:${PIN}`).digest();
+const sign = (exp) => crypto.createHmac('sha256', SECRET).update(String(exp)).digest('hex');
+const makeToken = () => {
+  const exp = Date.now() + SESSION_MS;
+  return `${exp}.${sign(exp)}`;
+};
 function getToken(req) {
-  const m = (req.headers.cookie || '').match(/(?:^|;\s*)admin_sid=([a-f0-9]+)/);
+  const m = (req.headers.cookie || '').match(/(?:^|;\s*)admin_sid=(\d+\.[a-f0-9]+)/);
   return m ? m[1] : null;
 }
 function isAuthed(req) {
   const t = getToken(req);
-  const exp = t ? sessions.get(t) : 0;
-  if (!exp || exp < Date.now()) {
-    if (t) sessions.delete(t);
-    return false;
-  }
-  return true;
+  if (!t) return false;
+  const [exp, sig] = t.split('.');
+  const good = sign(exp);
+  if (sig.length !== good.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good))) return false;
+  return Number(exp) > Date.now();
 }
+const cookie = (req, value, maxAge) =>
+  `admin_sid=${value}; HttpOnly; SameSite=Strict; Path=/admin; Max-Age=${maxAge}${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`;
 
 // ---------- 진행 중인 세션 ----------
 // 저장 전(savedTs 없음) 상태이고 최근 ACTIVE_MINUTES 분 안에 갱신된 세션이 있으면 진행 중으로 본다.
 function isBusy() {
+  if (DEMO) return false; // 데모에는 실제 세션이 없다
   const limit = Date.now() - ACTIVE_MINUTES * 60 * 1000;
   for (const id of listIds()) {
     const f = path.join(DATA, id, 'state.json');
@@ -82,6 +91,8 @@ const html = (res, code, body) => {
 };
 const readBody = (req) =>
   new Promise((resolve, reject) => {
+    // Vercel 은 본문을 미리 읽어 req.body 에 둔다
+    if (req.body !== undefined) return resolve(typeof req.body === 'string' ? req.body : Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body));
     const chunks = [];
     let size = 0;
     req.on('data', (c) => {
@@ -185,7 +196,7 @@ const writeJson = async (file, obj) => {
 // ---------- 라우터 ----------
 export async function handleAdmin(req, res, url) {
   // DNS 리바인딩 방지: localhost 로 접속한 요청만 받는다
-  if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host || '')) return json(res, 403, { error: 'forbidden' });
+  if (!DEMO && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host || '')) return json(res, 403, { error: 'forbidden' });
   const pathname = url.pathname.replace(/\/+$/, '') || '/';
 
   if (!PIN) return html(res, 404, 'not found');
@@ -205,7 +216,7 @@ export async function handleAdmin(req, res, url) {
 
   if (route === 'status' && method === 'GET') {
     const busy = isBusy();
-    return json(res, busy ? 423 : 200, busy ? { busy: true } : { busy: false, authed: isAuthed(req) });
+    return json(res, busy ? 423 : 200, busy ? { busy: true } : { busy: false, authed: isAuthed(req), demo: DEMO });
   }
   if (isBusy()) return json(res, 423, { busy: true });
 
@@ -217,14 +228,11 @@ export async function handleAdmin(req, res, url) {
       fails.push(Date.now());
       return json(res, 401, { error: 'PIN 이 맞지 않아요' });
     }
-    const token = crypto.randomBytes(24).toString('hex');
-    sessions.set(token, Date.now() + SESSION_MS);
-    res.setHeader('Set-Cookie', `admin_sid=${token}; HttpOnly; SameSite=Strict; Path=/admin; Max-Age=${SESSION_MS / 1000}`);
+    res.setHeader('Set-Cookie', cookie(req, makeToken(), SESSION_MS / 1000));
     return json(res, 200, { ok: true });
   }
   if (route === 'logout' && method === 'POST') {
-    const t = getToken(req);
-    if (t) sessions.delete(t);
+    res.setHeader('Set-Cookie', cookie(req, '', 0));
     return json(res, 200, { ok: true });
   }
 

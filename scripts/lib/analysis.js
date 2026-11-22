@@ -3,9 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { breakPoint, gap, shortfall } from './coding-rules.js';
+import { DATA_DIR } from '../../demo.js';
 
 export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-export const DATA = path.join(ROOT, 'data');
+export const DATA = DATA_DIR;
 export const EXPORT_DIR = path.join(DATA, 'export');
 export const CODING_DIR = path.join(DATA, 'coding');
 export const ID_RE = /^S2-P\d{2,3}$/;

@@ -1,0 +1,58 @@
+{"participant_id":"S2-P91","timestamp_ms":1795274981791,"screen":"S1-intro","event":"screen_enter","target":"S1-intro","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982039,"screen":"S1-intro","event":"screen_exit","target":"S1-intro","detail":{"ms":250,"reason":"next"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982040,"screen":"S1","event":"screen_enter","target":"S1","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982239,"screen":"S1","event":"screen_exit","target":"S1","detail":{"ms":200,"reason":"next"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982239,"screen":"S2","event":"screen_enter","target":"S2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982241,"screen":"S2","event":"feedback_shown","target":"P-1","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982241,"screen":"S2","event":"feedback_shown","target":"P-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982255,"screen":"S2","event":"comment_in_view","target":"P-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982255,"screen":"S2","event":"comment_in_view","target":"P-1","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982372,"screen":"S2","event":"memo_create","target":"P-1:0-33","detail":{"reaction":"좋음","text":""}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982421,"screen":"S2","event":"memo_edit","target":"P-1:0-33","detail":{"reaction":"좋음","text":"연습 메모"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982522,"screen":"S2","event":"memo_edit","target":"P-1:0-33","detail":{"reaction":"이상함","text":"연습 메모"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982622,"screen":"S2","event":"memo_create","target":"P-2:0-28","detail":{"reaction":"무슨 뜻인지 모르겠음","text":""}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982689,"screen":"S2","event":"memo_delete","target":"P-2:0-28","detail":{"reaction":"무슨 뜻인지 모르겠음","text":""}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982739,"screen":"S2","event":"comment_out_of_view","target":"P-1","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982739,"screen":"S2","event":"comment_out_of_view","target":"P-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274982739,"screen":"S2","event":"screen_exit","target":"S2","detail":{"ms":500,"reason":"next"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274982740,"screen":"S3","event":"screen_enter","target":"S3","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983089,"screen":"S3","event":"screen_exit","target":"S3","detail":{"ms":350,"reason":"next"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274983090,"screen":"S4","event":"screen_enter","target":"S4","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983540,"screen":"S4","event":"editor_change","target":"2","detail":{"before":"절대평가로 바꾸면 학점 인플레이션 때문에 학점이 변별력을 잃는다는 것은 명백하다.","after":"수정한 두 번째 문장\n줄바꿈 가능"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274983540,"screen":"S4","event":"submit_v1","target":"draft","detail":"① 대학 성적은 상대평가로 유지되어야 한다.\n② 수정한 두 번째 문장\n줄바꿈 가능\n③ 나도 지난 학기 절대평가 수업에서 밤새 공부했는데, 대충 한 친구와 똑같이 A를 받아 허탈했다.\n④ 상대평가는 같은 조건에서 학생들의 성취를 비교하므로 노력의 차이를 드러낸다."}
+{"participant_id":"S2-P91","timestamp_ms":1795274983540,"screen":"S4","event":"screen_exit","target":"S4","detail":{"ms":451,"reason":"next"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274983540,"screen":"S5","event":"screen_enter","target":"S5","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983605,"screen":"S5","event":"feedback_shown","target":"A1-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983605,"screen":"S5","event":"feedback_shown","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983657,"screen":"S5","event":"comment_in_view","target":"A1-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983657,"screen":"S5","event":"comment_in_view","target":"A1-2-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983657,"screen":"S5","event":"comment_in_view","target":"A1-R-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983657,"screen":"S5","event":"comment_in_view","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983755,"screen":"S5","event":"panel_expand","target":"A1-2-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983771,"screen":"S5","event":"comment_out_of_view","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274983771,"screen":"S5","event":"comment_out_of_view","target":"A1-R-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274985123,"screen":"S5","event":"hover","target":"A1-2-P","detail":1368}
+{"participant_id":"S2-P91","timestamp_ms":1795274985124,"screen":"S5","event":"memo_create","target":"A1-2-P.0:0-66","detail":{"reaction":"이상함","text":""}}
+{"participant_id":"S2-P91","timestamp_ms":1795274986472,"screen":"S5","event":"panel_collapse","target":"A1-2-P","detail":{"ms":2717}}
+{"participant_id":"S2-P91","timestamp_ms":1795274986487,"screen":"S5","event":"comment_in_view","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274986488,"screen":"S5","event":"comment_in_view","target":"A1-R-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274986505,"screen":"S5","event":"hover","target":"A1-2-P","detail":1334}
+{"participant_id":"S2-P91","timestamp_ms":1795274986506,"screen":"S5","event":"panel_expand","target":"A1-R-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274986521,"screen":"S5","event":"comment_out_of_view","target":"A1-R-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987020,"screen":"S5","event":"editor_change","target":"1","detail":{"before":"대학 성적은 상대평가로 유지되어야 한다.","after":"첫 문장 수정"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274987020,"screen":"S5","event":"editor_change","target":"1","detail":{"before":"대학 성적은 상대평가로 유지되어야 한다.","after":"첫 문장 수정"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274987021,"screen":"S5","event":"comment_out_of_view","target":"A1-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987021,"screen":"S5","event":"comment_out_of_view","target":"A1-2-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987021,"screen":"S5","event":"comment_out_of_view","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987021,"screen":"S5","event":"screen_exit","target":"S5","detail":{"ms":3481,"reason":"unload"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274987038,"screen":"S5","event":"screen_enter","target":"S5","detail":{"restored":true}}
+{"participant_id":"S2-P91","timestamp_ms":1795274987038,"screen":"S5","event":"panel_expand","target":"A1-R-P","detail":{"restored":true}}
+{"participant_id":"S2-P91","timestamp_ms":1795274987060,"screen":"S5","event":"comment_in_view","target":"A1-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987060,"screen":"S5","event":"comment_in_view","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987060,"screen":"S5","event":"comment_in_view","target":"A1-2-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987239,"screen":"S5","event":"submit_v2","target":"draft","detail":"① 첫 문장 수정\n② 수정한 두 번째 문장\n줄바꿈 가능\n③ 나도 지난 학기 절대평가 수업에서 밤새 공부했는데, 대충 한 친구와 똑같이 A를 받아 허탈했다.\n④ 상대평가는 같은 조건에서 학생들의 성취를 비교하므로 노력의 차이를 드러낸다."}
+{"participant_id":"S2-P91","timestamp_ms":1795274987239,"screen":"S5","event":"comment_out_of_view","target":"A1-2","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987239,"screen":"S5","event":"comment_out_of_view","target":"A1-2-P","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987239,"screen":"S5","event":"comment_out_of_view","target":"A1-R","detail":null}
+{"participant_id":"S2-P91","timestamp_ms":1795274987239,"screen":"S5","event":"screen_exit","target":"S5","detail":{"ms":201,"reason":"next"}}
+{"participant_id":"S2-P91","timestamp_ms":1795274987240,"screen":"S6","event":"screen_enter","target":"S6","detail":null}

@@ -3,6 +3,7 @@ import { STAGES, breakPoint, gap, shortfall } from '/admin/coding-rules.js';
 
 const app = document.getElementById('app');
 const warnBar = document.querySelector('.warn');
+const demoBar = document.getElementById('demo');
 
 const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -578,6 +579,7 @@ async function route() {
     const st = await api('status');
     if (!st.authed) return showLogin();
     warnBar.hidden = false;
+    demoBar.hidden = !st.demo;
     const parts = (location.hash || '#/list').split('/');
     const page = parts[1] || 'list';
     if (page === 'p' && parts[2]) return await viewDetail(decodeURIComponent(parts[2]), parts[3] || 'overview');

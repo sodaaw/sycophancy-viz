@@ -5,10 +5,11 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleAdmin } from './server-admin.js';
+import { DATA_DIR, DEMO } from './demo.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, 'dist');
-const DATA = path.join(__dirname, 'data');
+const DATA = DATA_DIR;
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '127.0.0.1'; // 이 노트북 안에서만 접속 가능
 const ID_RE = /^S2-P\d{2,3}$/;
@@ -45,6 +46,7 @@ function send(res, code, body, type = 'application/json; charset=utf-8') {
 }
 
 function readBody(req) {
+  if (req.body !== undefined) return Promise.resolve(typeof req.body === 'string' ? req.body : Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body));
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
@@ -84,7 +86,15 @@ async function handleApi(req, res, url) {
   const id = parts[2];
   const method = req.method;
 
-  if (action === 'health') return send(res, 200, { ok: true });
+  if (action === 'health') return send(res, 200, { ok: true, demo: DEMO });
+
+  // 데모 모드: 참여자 입력은 어디에도 저장하지 않는다 (받아서 버린다)
+  if (DEMO && ['log', 'state', 'save', 'reset', 'info'].includes(action)) {
+    if (method === 'GET' && action === 'state') return send(res, 404, { error: 'demo' });
+    if (method === 'GET' && action === 'info') return send(res, 200, { exists: false, hasState: false, hasEvents: false, hasSaved: false, files: [] });
+    await readBody(req);
+    return send(res, 200, { ok: true, events: 0 });
+  }
 
   if (action === 'log' && method === 'POST') {
     const body = JSON.parse((await readBody(req)) || 'null');
@@ -163,8 +173,10 @@ async function handleStatic(req, res, url) {
   fs.createReadStream(file).pipe(res);
 }
 
-const server = http.createServer(async (req, res) => {
+export async function handler(req, res) {
   try {
+    // Vercel: /admin 요청은 /api/admin-proxy 로 다시 쓰여서 들어온다
+    req.url = req.url.replace(/^\/api\/admin-proxy(?=\/|\?|$)/, '/admin');
     const url = new URL(req.url, `http://${HOST}`);
     if (url.pathname === '/admin' || url.pathname.startsWith('/admin/')) return await handleAdmin(req, res, url);
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
@@ -173,9 +185,11 @@ const server = http.createServer(async (req, res) => {
     console.error(err);
     if (!res.headersSent) send(res, 500, { error: String(err.message || err) });
   }
-});
+}
+
+const server = http.createServer(handler);
 
 await fsp.mkdir(DATA, { recursive: true });
-server.listen(PORT, HOST, () => {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) server.listen(PORT, HOST, () => {
   console.log(`실험 앱 실행 중: http://localhost:${PORT}`);
 });
