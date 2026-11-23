@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Editor, flushEditor } from '../components/Editor';
 import { CommentCard, PanelAccordion } from '../components/Feedback';
 import { Confirm, Frame } from '../components/Frame';
@@ -10,6 +10,9 @@ import { draftText } from './S4';
 export function S5() {
   const { session, update, log, go } = useSession();
   const [ask, setAsk] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const timer = useRef<number>();
+  useEffect(() => () => window.clearTimeout(timer.current), []);
   const s = session!;
   const set = s.setKey!;
   const comments = {
@@ -23,6 +26,15 @@ export function S5() {
   const showRequest = content.flags.showRequest;
 
   const request = () => {
+    if (loading) return;
+    setLoading(true);
+    timer.current = window.setTimeout(() => {
+      setLoading(false);
+      show();
+    }, 1500);
+  };
+
+  const show = () => {
     const now = Date.now();
     update((cur) => ({ ...cur, feedbackRequested: true, feedbackShownTs: now }));
     log('feedback_shown', comments.s2.id);
@@ -76,12 +88,22 @@ export function S5() {
                 ) : (
                   !s.feedbackRequested && <p className="muted">{content.ui.requestAreaNoRequest}</p>
                 )}
-                {!s.feedbackRequested && (
+                {!s.feedbackRequested && !loading && (
                   <div className="request-row">
                     <button type="button" className="btn btn-primary" onClick={request}>
                       {content.ui.requestFeedback}
                     </button>
                   </div>
+                )}
+                {loading && (
+                  <p className="typing" role="status">
+                    {content.ui.requestLoading}
+                    <span className="dots" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  </p>
                 )}
                 {s.feedbackRequested && (
                   <>

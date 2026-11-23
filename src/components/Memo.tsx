@@ -328,7 +328,8 @@ export function MemoText({ blockId, text, className }: { blockId: string; text: 
     }
     if (b !== undefined && b > a) {
       const piece = text.slice(a, b);
-      nodes.push(piece);
+      const covered = memos.some((m) => cut(m.start) <= a && b <= cut(m.end));
+      nodes.push(covered ? <span key={`hl-${a}`} className="memo-hl">{piece}</span> : piece);
     }
   }
 

@@ -195,6 +195,7 @@
     "next": "다음",
     "submit": "제출",
     "requestFeedback": "피드백 요청",
+    "requestLoading": "AI 도우미가 답변을 작성하고 있어요",
     "finalSubmit": "최종 제출",
     "confirm": "제출하면 이 단계로 돌아올 수 없어요. 제출할까요?",
     "cancel": "취소",
