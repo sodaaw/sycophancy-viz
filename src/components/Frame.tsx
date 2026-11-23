@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { isSyncFailing } from '../api';
 import { content } from '../content';
 import { useSession } from '../session';
 import type { ScreenId } from '../types';
@@ -35,6 +36,12 @@ interface FrameProps {
 export function Frame({ guide, children, actions, reason, className = '' }: FrameProps) {
   const { session } = useSession();
   const screen = session!.screen;
+  const [syncFail, setSyncFail] = useState(isSyncFailing());
+  useEffect(() => {
+    const on = (e: Event) => setSyncFail((e as CustomEvent<boolean>).detail);
+    window.addEventListener('study2-sync', on);
+    return () => window.removeEventListener('study2-sync', on);
+  }, []);
   return (
     <div className="frame">
       <header className="topbar">
@@ -42,6 +49,11 @@ export function Frame({ guide, children, actions, reason, className = '' }: Fram
         <StepIndicator screen={screen} />
         <span className="pid">{session!.pid}</span>
       </header>
+      {syncFail && (
+        <p className="sync-warn" role="alert">
+          서버에 기록을 보내지 못하고 있어요. 진행자는 서버가 켜져 있는지 확인해 주세요. 이 창은 닫지 마세요.
+        </p>
+      )}
       {guide && <p className="guide">{guide}</p>}
       <main className={`stage ${className}`}>{children}</main>
       {actions && (

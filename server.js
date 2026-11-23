@@ -12,7 +12,7 @@ const DIST = path.join(__dirname, 'dist');
 const DATA = DATA_DIR;
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '127.0.0.1'; // 이 노트북 안에서만 접속 가능
-const ID_RE = /^S2-P\d{2,3}$/;
+const ID_RE = /^(S2-P\d{2,3}|TEST)$/; // 'TEST' 는 자유 테스트용 (연구자 페이지·export 에는 나오지 않음)
 const MAX_BODY = 8 * 1024 * 1024;
 
 const MIME = {
@@ -153,7 +153,9 @@ async function handleApi(req, res, url) {
   if (action === 'reset' && method === 'POST') {
     // 암호화 저장소로 옮긴 것을 진행자가 확인한 뒤에만 호출된다
     // 연구 규정 변경: 지우지 않고 S2-P01_r1 처럼 이름만 바꿔 보관한다 (연구자 페이지에서 계속 분석 가능)
-    if (await exists(dirOf(id))) {
+    if (id === 'TEST') {
+      await fsp.rm(dirOf(id), { recursive: true, force: true }); // 테스트 자료는 보관하지 않고 바로 비운다
+    } else if (await exists(dirOf(id))) {
       let n = 1;
       while (await exists(path.join(DATA_DIR, `${id}_r${n}`))) n++;
       await fsp.rename(dirOf(id), path.join(DATA_DIR, `${id}_r${n}`));

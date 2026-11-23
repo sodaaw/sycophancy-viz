@@ -818,3 +818,5 @@ h3 {
 @media (prefers-reduced-motion: reduce) { .dots i { animation: none; opacity: 0.6; } }
 
 .memo-hl { background: rgba(132, 222, 146, 0.32); border-radius: 2px; }
+
+.sync-warn { margin: 0; padding: 10px 24px; background: #fdecea; color: #8a1c14; font-size: 14px; }

@@ -17,6 +17,30 @@ interface Ctx {
   endSession: (deleteData?: boolean) => void;
 }
 
+// 주소의 ?id= 가 사라져도(새로고침, 주소 직접 열기) 진행 중이던 세션을 시작 화면에서 이어갈 수 있게 마지막 ID를 기억한다
+const LAST_PID_KEY = 'study2_last_pid';
+const rememberPid = (pid: string) => {
+  try {
+    localStorage.setItem(LAST_PID_KEY, pid);
+  } catch {
+    /* ignore */
+  }
+};
+const forgetPid = () => {
+  try {
+    localStorage.removeItem(LAST_PID_KEY);
+  } catch {
+    /* ignore */
+  }
+};
+export const lastPid = (): string | null => {
+  try {
+    return localStorage.getItem(LAST_PID_KEY);
+  } catch {
+    return null;
+  }
+};
+
 const SessionCtx = createContext<Ctx>(null as unknown as Ctx);
 export const useSession = () => useContext(SessionCtx);
 
@@ -119,6 +143,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const s = { ...newSession(pid), screenEnterTs: Date.now() };
       commit(s, true);
       history.replaceState(null, '', `?id=${pid}`);
+      rememberPid(pid);
       log('screen_enter', s.screen, null);
     },
     [commit, log],
@@ -131,6 +156,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const s: Session = { ...saved, screenEnterTs: Date.now() };
       commit(s, true);
       history.replaceState(null, '', `?id=${pid}`);
+      rememberPid(pid);
       log('screen_enter', s.screen, { restored: true });
       for (const [id, p] of Object.entries(s.panels)) {
         if (p.open) log('panel_expand', id, { restored: true });
@@ -150,6 +176,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (pid) await resetParticipant(pid);
         ref.current = null;
         setSession(null);
+        forgetPid();
         history.replaceState(null, '', location.pathname);
       })();
       return;
@@ -160,7 +187,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clearLatestState();
       ref.current = null;
       setSession(null);
-      history.replaceState(null, '', location.pathname);
+      forgetPid();
+        history.replaceState(null, '', location.pathname);
     });
   }, [leave]);
 

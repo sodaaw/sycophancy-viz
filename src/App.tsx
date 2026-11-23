@@ -8,7 +8,7 @@ import { S4 } from './screens/S4';
 import { S5 } from './screens/S5';
 import { S6 } from './screens/S6';
 
-const ID_RE = /^S2-P\d{2,3}$/;
+const ID_RE = /^(S2-P\d{2,3}|TEST)$/; // 'TEST' 는 자유 테스트용 (연구자 페이지·export 에는 나오지 않음)
 
 function Shell() {
   const { session, restore } = useSession();

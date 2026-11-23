@@ -45,10 +45,10 @@ export function S6() {
     setBusy(true);
     setError('');
     try {
-      await drainLogs();
+      await drainLogs(15000);
       const now = Date.now();
       update((s) => ({ ...s, savedTs: now }));
-      await flushState();
+      await flushState(15000);
       const cur = { ...session!, savedTs: now };
       await saveSessionFile(session!.pid, buildPayload(cur));
     } catch (e) {
