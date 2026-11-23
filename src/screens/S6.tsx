@@ -39,7 +39,6 @@ export function S6() {
   const { session, update, endSession } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [moved, setMoved] = useState(false);
   const saved = session!.savedTs !== null;
 
   const save = async () => {
@@ -62,14 +61,14 @@ export function S6() {
 
   return (
     <Frame
-      reason={!saved ? '먼저 자료를 저장해 주세요' : moved ? null : '암호화 저장소로 옮겼는지 확인해 주세요'}
+      reason={!saved ? '먼저 자료를 저장해 주세요' : null}
       actions={
         <div className="staff-zone">
           <span className="staff-label">진행자용</span>
           <button type="button" className="btn btn-quiet" disabled={busy} onClick={save}>
             자료 저장
           </button>
-          <button type="button" className="btn btn-primary" disabled={!saved || !moved} onClick={() => endSession(true)}>
+          <button type="button" className="btn btn-primary" disabled={!saved} onClick={() => endSession(false)}>
             다음 세션 준비
           </button>
         </div>
@@ -83,12 +82,6 @@ export function S6() {
             <p className="saved" role="status">
               <Icon name="check" size={18} /> 저장됨
             </p>
-          )}
-          {saved && (
-            <label className="check">
-              <input type="checkbox" checked={moved} onChange={(e) => setMoved(e.target.checked)} />
-              <span>암호화 저장소로 옮겼나요? (확인하면 이 PC의 자료 폴더가 삭제돼요)</span>
-            </label>
           )}
           {error && <p className="hint-error">{error}</p>}
         </div>

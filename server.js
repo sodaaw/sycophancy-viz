@@ -152,7 +152,12 @@ async function handleApi(req, res, url) {
 
   if (action === 'reset' && method === 'POST') {
     // 암호화 저장소로 옮긴 것을 진행자가 확인한 뒤에만 호출된다
-    await fsp.rm(dirOf(id), { recursive: true, force: true });
+    // 연구 규정 변경: 지우지 않고 S2-P01_r1 처럼 이름만 바꿔 보관한다 (연구자 페이지에서 계속 분석 가능)
+    if (await exists(dirOf(id))) {
+      let n = 1;
+      while (await exists(path.join(DATA_DIR, `${id}_r${n}`))) n++;
+      await fsp.rename(dirOf(id), path.join(DATA_DIR, `${id}_r${n}`));
+    }
     return send(res, 200, { ok: true });
   }
 

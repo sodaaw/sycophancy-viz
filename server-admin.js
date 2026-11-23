@@ -305,7 +305,7 @@ export async function handleAdmin(req, res, url) {
       const b = JSON.parse((await readBody(req)) || '{}');
       const key = String(b.key || '');
       const coder = String(b.coder);
-      if (!['1', '2', 'consensus'].includes(coder) || !/^S2-P\d{2,3}\|[AB]1-(2|R)$/.test(key)) return json(res, 400, { error: 'invalid' });
+      if (!['1', '2', 'consensus'].includes(coder) || !/^S2-P\d{2,3}(_r\d+)?\|[AB]1-(2|R)$/.test(key)) return json(res, 400, { error: 'invalid' });
       if (!CODING_FIELDS[b.field] || (b.value !== '' && !CODING_FIELDS[b.field].includes(b.value))) return json(res, 400, { error: 'invalid value' });
       const id = key.split('|')[0];
       if (!fs.existsSync(path.join(DATA, id))) return json(res, 404, { error: '없는 참여자예요' });

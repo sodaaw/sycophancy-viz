@@ -9,7 +9,8 @@ export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..'
 export const DATA = DATA_DIR;
 export const EXPORT_DIR = path.join(DATA, 'export');
 export const CODING_DIR = path.join(DATA, 'coding');
-export const ID_RE = /^S2-P\d{2,3}$/;
+// 초기화로 보관된 이전 기록은 S2-P01_r1 처럼 번호가 붙는다
+export const ID_RE = /^S2-P\d{2,3}(_r\d+)?$/;
 export const MARKS = ['①', '②', '③', '④'];
 
 export const EXPECTED_EVENTS = [

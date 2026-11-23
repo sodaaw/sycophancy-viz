@@ -15,7 +15,7 @@
 ## 세션 후 체크리스트
 - [ ] `npm run export all` 로 CSV 생성 (원본을 지우기 전에)
 - [ ] `data/{id}/` (events.jsonl, state.json, `_세션.json`)와 `data/export/*.csv`를 암호화 저장소로 이동
-- [ ] 이동을 확인한 뒤 이 노트북의 `data/{id}/`와 `data/export/*.csv` 삭제 (앱의 [다음 세션 준비]는 `data/{id}`만 지웁니다. export 파일은 직접 지워야 합니다)
+- [ ] 이동을 확인한 뒤 이 노트북의 `data/{id}/`와 `data/export/*.csv` 삭제 (앱의 [다음 세션 준비]는 아무것도 지우지 않고, [초기화하고 시작]은 이전 폴더를 `data/{id}_r1`로 보관만 합니다. 연구 규정 변경으로 자료는 로컬에 남겨 둡니다)
 - [ ] 코딩 결과(`data/coding/coder1.json`, `coder2.json`, `consensus.json`, `interview.json`)도 같이 암호화 저장소로 옮기고 삭제
 - [ ] 철회 요청 시: `npm run purge S2-P01` (해당 폴더와 export CSV의 해당 참여자 행 삭제)
 

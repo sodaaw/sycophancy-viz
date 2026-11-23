@@ -21,7 +21,7 @@ function splitRecords(text) {
   return out;
 }
 
-export function purgeParticipant(id) {
+function purgeOne(id) {
   let folders = 0;
   const dir = path.join(DATA, id);
   if (fs.existsSync(dir)) {
@@ -80,4 +80,20 @@ export function purgeParticipant(id) {
     coding.push({ file: 'interview.json', removed: had });
   }
   return { folders, csv, coding };
+}
+
+// 철회하면 같은 참여자의 초기화 보관본(S2-P01_r1 …)까지 함께 지운다.
+export function purgeParticipant(id) {
+  const all = [id];
+  if (!/_r\d+$/.test(id) && fs.existsSync(DATA)) {
+    for (const d of fs.readdirSync(DATA)) if (d.startsWith(`${id}_r`) && /^_r\d+$/.test(d.slice(id.length))) all.push(d);
+  }
+  const res = { folders: 0, csv: [], coding: [] };
+  for (const one of all) {
+    const r = purgeOne(one);
+    res.folders += r.folders;
+    res.csv.push(...r.csv);
+    res.coding.push(...r.coding);
+  }
+  return res;
 }

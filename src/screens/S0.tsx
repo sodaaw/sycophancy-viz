@@ -15,7 +15,6 @@ export function S0() {
   const { start, restore } = useSession();
   const [id, setId] = useState('');
   const [existing, setExisting] = useState<Existing | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,7 +27,6 @@ export function S0() {
       const info = await getInfo(id);
       if (info.exists) {
         setExisting(info);
-        setConfirmed(false);
       } else {
         start(id);
       }
@@ -104,18 +102,14 @@ export function S0() {
                 {id} 폴더에 파일이 {existing.files.length}개 있어요.{' '}
                 {existing.hasSaved ? '저장된 세션 파일이 있어요.' : '저장된 세션 파일(_세션.json)이 아직 없어요.'}
               </p>
-              <p className="muted">초기화하면 이 ID의 자료 폴더가 완전히 삭제돼요.</p>
-              <label className="check">
-                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-                <span>암호화 저장소로 옮겼나요? (확인하면 삭제해요)</span>
-              </label>
+              <p className="muted">초기화해도 이전 자료는 지워지지 않고, 연구자 페이지에 S2-P01_r1 처럼 따로 남아요.</p>
               <div className="row">
                 {existing.hasState && (
                   <button type="button" className="btn btn-quiet" disabled={busy} onClick={onResume}>
                     이어서 진행
                   </button>
                 )}
-                <button type="button" className="btn btn-primary" disabled={!confirmed || busy} onClick={onReset}>
+                <button type="button" className="btn btn-primary" disabled={busy} onClick={onReset}>
                   초기화하고 시작
                 </button>
               </div>
